@@ -8,9 +8,6 @@ class Settings extends \craft\base\Model
     /** @var Rule[] */
     public $rules = [];
 
-    /** @var bool */
-    public $debug = false;
-
     public function fields()
     {
         $fields = parent::fields();

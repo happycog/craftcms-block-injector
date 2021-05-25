@@ -1,5 +1,17 @@
 # Block Injector Changelog
 
+## 0.3.0 - 2021-05-25
+
+### Added
+
+- `InjectableBehavior::EVENT_BEFORE_APPLY_RULES`
+- `InjectableBehavior::EVENT_AFTER_APPLY_RULES`
+
+### Removed
+
+- debug setting (use event)
+- copy block splitting (use event)
+
 ## 0.2.0 - 2021-05-25
 
 ### Added
