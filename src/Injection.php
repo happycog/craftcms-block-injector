@@ -16,6 +16,12 @@ class Injection extends \craft\base\Component
     /** @var int */
     public $interval;
 
+    /** @var int */
+    public $offset = 0;
+
+    /** @var int */
+    public $limit;
+
     /** @var bool */
     public $retry = true;
 
@@ -29,10 +35,10 @@ class Injection extends \craft\base\Component
     public $injectionCallback;
 
     /** @var int */
-    private $intervalCounter = 0;
+    private $intervalCount = 0;
 
     /** @var int */
-    private $retryOffset = 0;
+    private $injectionCount = 0;
 
     public function apply(Collection $blocks): Collection
     {
@@ -66,9 +72,9 @@ class Injection extends \craft\base\Component
             $next = $blocks->get($index + 1);
 
             if (!$this->intervalCallback || ($this->intervalCallback)($block, $next)) {
-                $this->intervalCounter++;
+                $this->intervalCount++;
 
-                if ($this->intervalCounter % $this->interval === 0) {
+                if ($this->intervalCount % $this->interval === 0) {
                     return $index + 1;
                 }
             }
@@ -80,32 +86,36 @@ class Injection extends \craft\base\Component
         ->values();
 
         return $indices->reduce(function ($blocks, $index) {
-            return $this->injectAtIndex($index + $this->retryOffset, $blocks);
+            return $this->injectAtIndex($index, $blocks);
         }, $blocks);
     }
 
     private function injectAtIndex(int $index, Collection $blocks): Collection
     {
-        if ($index > $blocks->count()) {
+        $targetIndex = $index + $this->offset;
+
+        if ($targetIndex > $blocks->count() ||
+            $this->limit !== null && ($this->injectionCount + 1) > $this->limit
+        ) {
             Craft::info("Block(s) could NOT be injected at index `{$index}`.", __METHOD__);
 
             return $blocks;
         }
 
-        $end = $blocks->splice($index - 1);
+        $end = $blocks->splice($targetIndex - 1);
         $prev = $blocks->last();
         $next = $end->first();
 
-        return $blocks->when($this->shouldInject($prev, $next), function ($blocks) use ($index, $end) {
-            Craft::info("Injecting block(s) at index `{$index}`.", __METHOD__);
+        return $blocks->when($this->shouldInject($prev, $next), function ($blocks) use ($targetIndex, $end) {
+            Craft::info("Injecting block(s) at index `{$targetIndex}`.", __METHOD__);
+            $this->injectionCount++;
 
             return $blocks->concat($this->blocksToInject)->concat($end);
-        }, function($blocks) use ($index, $end) {
-            return $blocks->concat($end)->when($this->retry, function($blocks) use ($index) {
-                Craft::info("Retrying injection at index `{$index}`.", __METHOD__);
-                $this->retryOffset ++;
+        }, function ($blocks) use ($index, $end) {
+            return $blocks->concat($end)->when($this->retry, function ($blocks) use ($index) {
+                $this->offset++;
 
-                return $this->injectAtIndex($index + 1, $blocks);
+                return $this->injectAtIndex($targetIndex, $blocks);
             });
         });
     }

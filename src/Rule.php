@@ -3,11 +3,9 @@ namespace happycog\blockinjector;
 
 use Craft;
 use craft\elements\MatrixBlock;
-use craft\helpers\ArrayHelper;
 use happycog\blockinjector\Condition;
-use happycog\blockinjector\Interval;
+use happycog\blockinjector\Injection;
 use Illuminate\Support\Collection;
-use yii\base\ErrorException;
 
 class Rule extends \craft\base\Component
 {
@@ -35,6 +33,7 @@ class Rule extends \craft\base\Component
     {
         $this->conditions = new Collection();
         $this->injections = new Collection();
+        $this->currentInjection = new Injection();
     }
 
     public function enable(bool $enabled = true): self
@@ -66,7 +65,7 @@ class Rule extends \craft\base\Component
         $this->blocks = $blocks->pipe(function ($blocks) {
             return $this->applyConditions($blocks);
         })
-        ->when($this->enabled, function($blocks) {
+        ->when($this->enabled, function ($blocks) {
             return $blocks->pipe(function ($blocks) {
                 return $this->applyInjections($blocks);
             });
@@ -119,6 +118,20 @@ class Rule extends \craft\base\Component
         }, $injectionCallback);
     }
 
+    public function offset(int $offset): self
+    {
+        $this->currentInjection->offset = $offset;
+
+        return $this;
+    }
+
+    public function limit(int $limit): self
+    {
+        $this->currentInjection->limit = $limit;
+
+        return $this;
+    }
+
     public function inject(MatrixBlock $block, bool $retry = true): self
     {
         return $this->injectMany([$block], $retry);
@@ -127,7 +140,7 @@ class Rule extends \craft\base\Component
 
     public function injectMany(iterable $blocks, bool $retry = true): self
     {
-        $this->currentInjection = new Injection([
+        Craft::configure($this->currentInjection, [
             'retry' => $retry,
             'blocksToInject' => (new Collection($blocks))->filter(),
         ]);
