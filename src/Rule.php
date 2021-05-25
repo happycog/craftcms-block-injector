@@ -116,7 +116,7 @@ class Rule extends \craft\base\Component
         return $this;
     }
 
-    // TODO: move injectionCallback to inject
+    // TODO: move injectionCallback to inject, bring back intervalCallback
     public function atInterval(int $interval, $injectionCallback = null): self
     {
         $this->injections->push(
