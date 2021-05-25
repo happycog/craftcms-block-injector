@@ -29,13 +29,7 @@ class Injection extends \craft\base\Component
     public $ratio;
 
     /** @var callable */
-    public $intervalCallback;
-
-    /** @var callable */
     public $injectionCallback;
-
-    /** @var int */
-    private $intervalCount = 0;
 
     /** @var int */
     private $injectionCount = 0;
@@ -68,25 +62,14 @@ class Injection extends \craft\base\Component
 
     public function applyInterval(Collection $blocks): Collection
     {
-        $indices = $blocks->map(function ($block, $index) use ($blocks) {
-            $next = $blocks->get($index + 1);
+        return $blocks->reduce(function ($blocks, $block, $index) {
+            $targetIndex = $index + $this->injectionCount;
 
-            if (!$this->intervalCallback || ($this->intervalCallback)($block, $next)) {
-                $this->intervalCount++;
-
-                if ($this->intervalCount % $this->interval === 0) {
-                    return $index + 1;
-                }
+            if (($targetIndex + 1) % $this->interval === 0) {
+                return $this->injectAtIndex($targetIndex, $blocks);
             }
 
-            return null;
-        })->filter(function ($index) {
-            return $index !== null;
-        })
-        ->values();
-
-        return $indices->reduce(function ($blocks, $index) {
-            return $this->injectAtIndex($index, $blocks);
+            return $blocks;
         }, $blocks);
     }
 
@@ -102,7 +85,9 @@ class Injection extends \craft\base\Component
             return $blocks;
         }
 
-        $end = $blocks->splice($targetIndex - 1);
+        // Convert to a splice-friendly index, for negatives
+        $spliceIndex = $targetIndex < 0 ? $blocks->count() + $targetIndex + 1 : $targetIndex;
+        $end = $blocks->splice($spliceIndex);
         $prev = $blocks->last();
         $next = $end->first();
 
@@ -111,8 +96,8 @@ class Injection extends \craft\base\Component
             $this->injectionCount++;
 
             return $blocks->concat($this->blocksToInject)->concat($end);
-        }, function ($blocks) use ($index, $end) {
-            return $blocks->concat($end)->when($this->retry, function ($blocks) use ($index) {
+        }, function ($blocks) use ($targetIndex, $end) {
+            return $blocks->concat($end)->when($this->retry, function ($blocks) use ($targetIndex) {
                 $this->offset++;
 
                 return $this->injectAtIndex($targetIndex, $blocks);

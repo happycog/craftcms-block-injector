@@ -6,6 +6,7 @@ use craft\elements\MatrixBlock;
 use happycog\blockinjector\Condition;
 use happycog\blockinjector\Injection;
 use Illuminate\Support\Collection;
+use yii\base\Exception;
 
 class Rule extends \craft\base\Component
 {
@@ -74,7 +75,18 @@ class Rule extends \craft\base\Component
         return $this->blocks;
     }
 
-    public function at(int $index, $injectionCallback = null): self
+    public function at(int $position, $injectionCallback = null): self
+    {
+        if (!abs($position)) {
+            throw new Exception('Position parameter must be a positive or negative integer.');
+        }
+
+        $index = $position > 0 ? $position - 1 : $position;
+
+        return $this->atIndex($index, $injectionCallback);
+    }
+
+    public function atIndex(int $index, $injectionCallback = null): self
     {
         $this->injections->push(
             Craft::configure(clone $this->currentInjection, [
@@ -98,12 +110,11 @@ class Rule extends \craft\base\Component
         return $this;
     }
 
-    public function atInterval(int $interval, $intervalCallback = null, $injectionCallback = null): self
+    public function atInterval(int $interval, $injectionCallback = null): self
     {
         $this->injections->push(
             Craft::configure(clone $this->currentInjection, [
                 'interval' => $interval,
-                'intervalCallback' => $intervalCallback,
                 'injectionCallback' => $injectionCallback,
             ])
         );
