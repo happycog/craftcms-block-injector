@@ -2,7 +2,6 @@
   "name": "happycog/craftcms-block-injector",
   "description": "Inject matrix blocks based on various rules.",
   "type": "craft-plugin",
-  "version": "0.1.0",
   "license": "MIT",
   "authors": [
     {

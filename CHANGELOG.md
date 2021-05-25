@@ -1,10 +1,12 @@
 # Block Injector Changelog
 
-## Unreleased
+## 0.2.0 - 2021-05-25
 
 ### Added
 
 - `atIndex` method for 0-based injection
+- `limit`
+- `offset`
 
 ### Changed
 
@@ -15,7 +17,7 @@
 
 - `intervalCallback` as it didn't really make sense…
 
-## 0.1.0 - 2020-10-12
+## 0.1.0 - 2021-05-25
 
 ### Added
 
