@@ -1,0 +1,33 @@
+{
+  "name": "happycog/craftcms-block-injector",
+  "description": "Inject matrix blocks based on various rules.",
+  "type": "craft-plugin",
+  "version": "0.1.0",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Happy Cog",
+      "homepage": "https://www.happycog.com"
+    },
+    {
+      "name": "Tim Kelty",
+      "homepage": "https://github.com/timkelty"
+    }
+  ],
+  "require": {
+    "craftcms/cms": "^3.2.0",
+    "illuminate/collections": "^8.9"
+  },
+  "autoload": {
+    "psr-4": {
+      "happycog\\blockinjector\\": "src/"
+    }
+  },
+  "extra": {
+    "name": "Block Injector",
+    "handle": "block-injector",
+    "developer": "Happy Cog",
+    "developerUrl": "https://www.happycog.com",
+    "class": "happycog\\blockinjector\\BlockInjector"
+  }
+}
