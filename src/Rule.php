@@ -63,6 +63,9 @@ class Rule extends \craft\base\Component
 
     public function apply(Collection $blocks): Collection
     {
+        // Ensure any added behaviors
+        $this->ensureBehaviors();
+
         $this->blocks = $blocks->pipe(function ($blocks) {
             return $this->applyConditions($blocks);
         })
@@ -75,6 +78,7 @@ class Rule extends \craft\base\Component
         return $this->blocks;
     }
 
+    // TODO: move injectionCallback to inject
     public function at(int $position, $injectionCallback = null): self
     {
         if (!abs($position)) {
@@ -86,6 +90,7 @@ class Rule extends \craft\base\Component
         return $this->atIndex($index, $injectionCallback);
     }
 
+    // TODO: move injectionCallback to inject
     public function atIndex(int $index, $injectionCallback = null): self
     {
         $this->injections->push(
@@ -98,6 +103,7 @@ class Rule extends \craft\base\Component
         return $this;
     }
 
+    // TODO: move injectionCallback to inject
     public function atRatio(float $ratio, $injectionCallback = null): self
     {
         $this->injections->push(
@@ -110,6 +116,7 @@ class Rule extends \craft\base\Component
         return $this;
     }
 
+    // TODO: move injectionCallback to inject
     public function atInterval(int $interval, $injectionCallback = null): self
     {
         $this->injections->push(
@@ -120,13 +127,6 @@ class Rule extends \craft\base\Component
         );
 
         return $this;
-    }
-
-    public function atParagraphInterval(int $interval, ?callable $injectionCallback = null): self
-    {
-        return $this->atInterval($interval, function (MatrixBlock $block) {
-            return $block->type->handle === 'copy';
-        }, $injectionCallback);
     }
 
     public function offset(int $offset): self
@@ -180,20 +180,6 @@ class Rule extends \craft\base\Component
         ]));
 
         return $this;
-    }
-
-    // TODO: move this to a Collections macro on $blocks
-    public function containsType(string $typeHandle): bool
-    {
-        return $this->blocks->contains(function ($block) use ($typeHandle) {
-            return self::blockIsType($block, $typeHandle);
-        });
-    }
-
-    // TODO: make this a MatrixBlock behavior
-    public static function blockIsType(?MatrixBlock $block, string $type)
-    {
-        return $block && $block->type->handle === $type;
     }
 
     private function applyConditions(Collection $blocks): Collection
