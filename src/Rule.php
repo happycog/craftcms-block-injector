@@ -63,7 +63,7 @@ class Rule extends \craft\base\Component
 
     public function apply(Collection $blocks): Collection
     {
-        // Ensure any added behaviors
+        // Ensure any externally added behaviors
         $this->ensureBehaviors();
 
         $this->blocks = $blocks->pipe(function ($blocks) {
@@ -78,8 +78,7 @@ class Rule extends \craft\base\Component
         return $this->blocks;
     }
 
-    // TODO: move injectionCallback to inject
-    public function at(int $position, $injectionCallback = null): self
+    public function at(int $position): self
     {
         if (!abs($position)) {
             throw new Exception('Position parameter must be a positive or negative integer.');
@@ -87,7 +86,7 @@ class Rule extends \craft\base\Component
 
         $index = $position > 0 ? $position - 1 : $position;
 
-        return $this->atIndex($index, $injectionCallback);
+        return $this->atIndex($index);
     }
 
     public function atIndex(int $index): self
