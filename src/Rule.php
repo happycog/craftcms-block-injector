@@ -90,41 +90,44 @@ class Rule extends \craft\base\Component
         return $this->atIndex($index, $injectionCallback);
     }
 
-    // TODO: move injectionCallback to inject
-    public function atIndex(int $index, $injectionCallback = null): self
+    public function atIndex(int $index): self
     {
         $this->injections->push(
             Craft::configure(clone $this->currentInjection, [
                 'index' => $index,
-                'injectionCallback' => $injectionCallback,
             ])
         );
 
         return $this;
     }
 
-    // TODO: move injectionCallback to inject
-    public function atRatio(float $ratio, $injectionCallback = null): self
+    public function atRatio(float $ratio): self
     {
         $this->injections->push(
             Craft::configure(clone $this->currentInjection, [
                 'ratio' => $ratio,
-                'injectionCallback' => $injectionCallback,
             ])
         );
 
         return $this;
     }
 
-    // TODO: move injectionCallback to inject, bring back intervalCallback
-    public function atInterval(int $interval, $injectionCallback = null): self
+    public function atInterval(int $interval, $intervalCallback = null): self
     {
         $this->injections->push(
             Craft::configure(clone $this->currentInjection, [
                 'interval' => $interval,
-                'injectionCallback' => $injectionCallback,
+                'intervalCallback' => $intervalCallback,
             ])
         );
+
+        return $this;
+    }
+
+
+    public function retry(bool $retry): self
+    {
+        $this->currentInjection->retry = $retry;
 
         return $this;
     }
@@ -143,17 +146,17 @@ class Rule extends \craft\base\Component
         return $this;
     }
 
-    public function inject(MatrixBlock $block, bool $retry = true): self
+    public function inject(MatrixBlock $block, $injectionCallback = null): self
     {
-        return $this->injectMany([$block], $retry);
+        return $this->injectMany([$block], $injectionCallback);
     }
 
 
-    public function injectMany(iterable $blocks, bool $retry = true): self
+    public function injectMany(iterable $blocks, $injectionCallback = null): self
     {
         Craft::configure($this->currentInjection, [
-            'retry' => $retry,
             'blocksToInject' => (new Collection($blocks))->filter(),
+            'injectionCallback' => $injectionCallback,
         ]);
 
         return $this;

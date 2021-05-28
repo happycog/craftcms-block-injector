@@ -31,8 +31,14 @@ class Injection extends \craft\base\Component
     /** @var callable */
     public $injectionCallback;
 
+    /** @var callable */
+    public $intervalCallback;
+
     /** @var int */
     private $injectionCount = 0;
+
+    /** @var int */
+    private $intervalCount = 0;
 
     public function apply(Collection $blocks): Collection
     {
@@ -64,9 +70,14 @@ class Injection extends \craft\base\Component
     {
         return $blocks->reduce(function ($blocks, $block, $index) {
             $targetIndex = $index + $this->injectionCount;
+            $next = $blocks->get($targetIndex + 1);
 
-            if (($targetIndex + 1) % $this->interval === 0) {
-                return $this->injectAtIndex($targetIndex, $blocks);
+            if ($this->shouldIncrementInterval($block, $next)) {
+                $this->intervalCount++;
+            }
+
+            if ($targetIndex && ($this->intervalCount - 1) % ($this->interval - 1) === 0) {
+                $blocks = $this->injectAtIndex($targetIndex, $blocks);
             }
 
             return $blocks;
@@ -85,7 +96,7 @@ class Injection extends \craft\base\Component
             return $blocks;
         }
 
-        // Convert to a splice-friendly index, for negatives
+        // Convert to a splice-friendly index to handle negatives
         $spliceIndex = $targetIndex < 0 ? $blocks->count() + $targetIndex + 1 : $targetIndex;
         $end = $blocks->splice($spliceIndex);
         $prev = $blocks->last();
@@ -103,6 +114,11 @@ class Injection extends \craft\base\Component
                 return $this->injectAtIndex($targetIndex, $blocks);
             });
         });
+    }
+
+    private function shouldIncrementInterval(?MatrixBlock $prev, ?MatrixBlock $next): bool
+    {
+        return !$this->intervalCallback || ($this->intervalCallback)($prev, $next);
     }
 
     private function shouldInject(?MatrixBlock $prev, ?MatrixBlock $next): bool
