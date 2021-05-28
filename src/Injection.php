@@ -69,15 +69,14 @@ class Injection extends \craft\base\Component
     public function applyInterval(Collection $blocks): Collection
     {
         return $blocks->reduce(function ($blocks, $block, $index) {
-            $targetIndex = $index + $this->injectionCount;
-            $next = $blocks->get($targetIndex + 1);
+            $next = $blocks->get($index + 1);
 
             if ($this->shouldIncrementInterval($block, $next)) {
                 $this->intervalCount++;
             }
 
-            if ($targetIndex && ($this->intervalCount - 1) % ($this->interval - 1) === 0) {
-                $blocks = $this->injectAtIndex($targetIndex, $blocks);
+            if ($index && ($this->intervalCount - 1) % ($this->interval - 1) === 0) {
+                $blocks = $this->injectAtIndex($index, $blocks);
             }
 
             return $blocks;
@@ -104,7 +103,9 @@ class Injection extends \craft\base\Component
 
         return $blocks->when($this->shouldInject($prev, $next), function ($blocks) use ($targetIndex, $end) {
             Craft::info("Injecting block(s) at index `{$targetIndex}`.", __METHOD__);
-            $this->injectionCount++;
+
+            $this->injectionCount += $this->blocksToInject->count();
+            $this->offset += $this->blocksToInject->count();
 
             return $blocks->concat($this->blocksToInject)->concat($end);
         }, function ($blocks) use ($targetIndex, $end) {
