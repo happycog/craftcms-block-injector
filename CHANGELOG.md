@@ -1,5 +1,13 @@
 # Block Injector Changelog
 
+## 0.4.0 - 2021-05-28
+
+### Changed
+
+- Fixed inteval logic
+- Move injection callbacks from at methods, to inject
+- Bring back interval callback
+
 ## 0.3.0 - 2021-05-25
 
 ### Added
